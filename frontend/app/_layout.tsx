@@ -1,6 +1,7 @@
 // app/_layout.tsx
 import { Tabs } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 
 export default function Layout() {
   return (
@@ -16,14 +17,21 @@ export default function Layout() {
         name="prediction" 
         options={{
           title: 'Predict',
-          tabBarIcon: () => <MaterialIcons name="fire-extinguisher" size={24} color="black" />,
+          tabBarIcon: () => <MaterialIcons name="local-fire-department" size={24} color="black" />,
         }} 
       />
-       <Tabs.Screen 
+      <Tabs.Screen
+        name="news"
+        options={{
+          title: 'News & Safety',
+          tabBarIcon: () => <MaterialIcons name="newspaper" size={24} color="black" />,
+        }} 
+      />
+      <Tabs.Screen 
         name="aboutus" 
         options={{
           title: 'About Us',
-          tabBarIcon: () => <MaterialIcons name="" size={24} color="black" />,
+          tabBarIcon: () => <AntDesign name="team" size={24} color="black" />,
         }} 
       />
     </Tabs>
