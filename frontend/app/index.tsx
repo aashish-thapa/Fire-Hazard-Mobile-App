@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ImageBackground, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, Alert, StyleSheet, ActivityIndicator } from 'react-native';
 import * as Location from 'expo-location';
+import * as Notifications from 'expo-notifications';
 import { useFonts, Poppins_400Regular, Poppins_700Bold } from '@expo-google-fonts/poppins';
 import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import MapView, { Marker } from 'react-native-maps';
 import { LinearGradient } from 'expo-linear-gradient';
-import axios from 'axios';
 
 const WEATHER_API_KEY = '7fd3dd027fcc5a94515388ee3c06b338';
 
@@ -20,6 +20,7 @@ export default function HomeScreen() {
   });
 
   useEffect(() => {
+    // Request location permission
     (async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
@@ -28,11 +29,26 @@ export default function HomeScreen() {
         return;
       }
 
+      // Request notification permission
+      // await registerForPushNotifications();
+
+      // Get location
       let loc = await Location.getCurrentPositionAsync({});
       setLocation(loc.coords);
       fetchWeatherData(loc.coords.latitude, loc.coords.longitude);
     })();
   }, []);
+
+  // const registerForPushNotifications = async () => {
+  //   const { status } = await Notifications.requestPermissionsAsync();
+  //   if (status !== 'granted') {
+  //     Alert.alert('Permission Denied', 'Push notification permissions are required.');
+  //     return;
+  //   }
+
+  //   const token = (await Notifications.getExpoPushTokenAsync()).data;
+  //   console.log("Push Notification Token: ", token);
+  // };
 
   const fetchWeatherData = async (latitude, longitude) => {
     try {
@@ -117,6 +133,8 @@ export default function HomeScreen() {
     </LinearGradient>
   );
 }
+
+// Rest of your styles...
 
 const styles = StyleSheet.create({
   background: {
