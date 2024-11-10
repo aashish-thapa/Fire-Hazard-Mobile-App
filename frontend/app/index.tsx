@@ -4,18 +4,16 @@ import * as Location from 'expo-location';
 import { useFonts, Poppins_400Regular, Poppins_700Bold } from '@expo-google-fonts/poppins';
 import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import MapView, { Marker } from 'react-native-maps';
+import { LinearGradient } from 'expo-linear-gradient';
 import axios from 'axios';
 
 const WEATHER_API_KEY = '7fd3dd027fcc5a94515388ee3c06b338';
-const FIRMS_API_URL = 'https://firms.modaps.eosdis.nasa.gov/api/active_fire/';
 
 export default function HomeScreen() {
   const [location, setLocation] = useState(null);
   const [weather, setWeather] = useState(null);
-  const [firePoints, setFirePoints] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Load custom fonts
   let [fontsLoaded] = useFonts({
     Poppins_400Regular,
     Poppins_700Bold,
@@ -33,7 +31,6 @@ export default function HomeScreen() {
       let loc = await Location.getCurrentPositionAsync({});
       setLocation(loc.coords);
       fetchWeatherData(loc.coords.latitude, loc.coords.longitude);
-      fetchFireData(loc.coords.latitude, loc.coords.longitude);
     })();
   }, []);
 
@@ -51,29 +48,17 @@ export default function HomeScreen() {
     }
   };
 
-  // const fetchFireData = async (latitude, longitude) => {
-  //   try {
-  //     const response = await axios.get(
-  //       `${FIRMS_API_URL}?lat=${latitude}&lon=${longitude}&radius=100`
-  //     );
-  //     const data = response.data;
-  //     setFirePoints(data.features);
-  //   } catch (error) {
-  //     Alert.alert("Error", "Could not retrieve fire data.");
-  //   }
-  // };
-
   if (!fontsLoaded || loading) {
     return <ActivityIndicator size="large" color="#00ff00" style={styles.loader} />;
   }
 
   return (
-    <ImageBackground source={require('../assets/images/background.jpg')} style={styles.background}>
+    <LinearGradient colors={['#0F2027', '#203A43', '#2C5364']} style={styles.background}>
       <View style={styles.overlay}>
         <Text style={styles.appName}>Fire Hazard Prediction</Text>
 
         {location && weather ? (
-          <View style={styles.weatherContainer}>
+          <View style={styles.card}>
             <Text style={styles.weatherTitle}>Current Weather</Text>
             
             <View style={styles.weatherInfo}>
@@ -96,7 +81,7 @@ export default function HomeScreen() {
             </View>
 
             <View style={styles.weatherInfo}>
-              <MaterialIcons name="" size={24} color="white" />
+              <MaterialIcons name="air" size={24} color="white" />
               <Text style={styles.weatherText}>
                 Wind Speed: {weather?.wind?.speed ?? '--'} m/s
               </Text>
@@ -106,73 +91,78 @@ export default function HomeScreen() {
           <Text style={styles.loadingText}>Fetching location and weather data...</Text>
         )}
 
-        {/* {location && (
-          <View style={styles.mapContainer}>
-            <MapView
-              style={styles.map}
-              region={{
-                latitude: location.latitude,
-                longitude: location.longitude,
-                latitudeDelta: 0.0922,
-                longitudeDelta: 0.0421,
-              }}
-            >
-              {firePoints.map((fire, index) => (
-                <Marker
-                  key={index}
-                  coordinate={{
-                    latitude: fire.geometry.coordinates[1],
-                    longitude: fire.geometry.coordinates[0],
-                  }}
-                  title={`Fire Point ${index + 1}`}
-                  description={`Confidence: ${fire.properties.confidence}`}
-                />
-              ))}
-            </MapView>
-          </View>
-        )} */}
+        <View style={styles.mapContainer}>
+          <MapView
+            style={styles.map}
+            region={{
+              latitude: location?.latitude || 37.78825,
+              longitude: location?.longitude || -122.4324,
+              latitudeDelta: 0.0922,
+              longitudeDelta: 0.0421,
+            }}
+          >
+            {location && (
+              <Marker
+                coordinate={{
+                  latitude: location.latitude,
+                  longitude: location.longitude,
+                }}
+                title="You are here"
+                description="Your current location"
+              />
+            )}
+          </MapView>
+        </View>
       </View>
-    </ImageBackground>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   background: {
     flex: 1,
-    resizeMode: 'cover',
+     backgroundColor: '#330000'
   },
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)', // Dark overlay for readability
+    backgroundColor: 'rgba(255, 69, 0, 0.4)',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
   },
   appName: {
-    marginTop: 0,
     fontSize: 28,
     fontFamily: 'Poppins_700Bold',
     color: '#ffffff',
-    marginBottom: 30,
+    marginBottom: 20,
     textAlign: 'center',
+    textShadowColor: 'rgba(255, 69, 0, 0.5)',
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 5,
   },
-  weatherContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 10,
+  card: {
+    backgroundColor: 'rgba(255, 99, 71, 0.3)',
+    borderRadius: 15,
     padding: 20,
-    width: '90%',
+    width: '100%',
     alignItems: 'center',
+    marginBottom: 20,
+    shadowColor: '#8B0000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
+    elevation: 8,
   },
   weatherTitle: {
-    fontSize: 24,
+    fontSize: 22,
     fontFamily: 'Poppins_700Bold',
     color: '#ffffff',
-    marginBottom: 15,
+    marginBottom: 10,
   },
   weatherInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 5,
+    marginVertical: 8,
   },
   weatherText: {
     fontSize: 18,
@@ -189,9 +179,15 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 300,
     marginTop: 20,
+    borderRadius: 15,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
+    elevation: 8,
   },
   map: {
     flex: 1,
-    borderRadius: 10,
   },
 });

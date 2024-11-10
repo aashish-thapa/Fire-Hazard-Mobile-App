@@ -8,7 +8,7 @@ export default function Layout() {
       <Tabs.Screen 
         name="index" 
         options={{
-          title: 'FIRE HAZARD APP',
+          title: 'HOME',
           tabBarIcon: () => <MaterialIcons name="home" size={24} color="black" />,
         }} 
       />
@@ -17,6 +17,13 @@ export default function Layout() {
         options={{
           title: 'Predict',
           tabBarIcon: () => <MaterialIcons name="fire-extinguisher" size={24} color="black" />,
+        }} 
+      />
+       <Tabs.Screen 
+        name="aboutus" 
+        options={{
+          title: 'About Us',
+          tabBarIcon: () => <MaterialIcons name="" size={24} color="black" />,
         }} 
       />
     </Tabs>
