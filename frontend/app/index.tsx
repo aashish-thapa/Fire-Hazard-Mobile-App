@@ -8,9 +8,12 @@ import MapView, { Marker } from 'react-native-maps';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const WEATHER_API_KEY = '7fd3dd027fcc5a94515388ee3c06b338';
-
+const IP_ADDRESS = "10.0.0.183";
 export default function HomeScreen() {
-  const [location, setLocation] = useState(null);
+  const [location, setLocation] = useState({
+    latitude:0,
+    longitude:0
+  });
   const [weather, setWeather] = useState(null);
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState('');
@@ -33,7 +36,14 @@ export default function HomeScreen() {
 
       // Get location
       let loc = await Location.getCurrentPositionAsync({});
-      setLocation(loc.coords);
+
+      
+
+      setLocation({
+        latitude: loc.coords.latitude,
+        longitude: loc.coords.longitude
+      });
+
       fetchWeatherData(loc.coords.latitude, loc.coords.longitude);
     })();
   }, []);
@@ -52,15 +62,53 @@ export default function HomeScreen() {
     }
   };
 
-  const handleSubmitEmail = () => {
-    if (!email) {
-      Alert.alert('Error', 'Please enter a valid email address.');
+  const handleSubmitEmail = async () => {
+    if (!email || !location) {
+      Alert.alert('Error', 'Please enter a valid email address and make sure location is available.');
       return;
     }
-    // Handle email submission (e.g., store in database or send it to server)
-    Alert.alert('Email Submitted', `Your email: ${email}`);
-    setIsFormVisible(false); // Close the form after submission
+  
+    // Generate a unique user ID
+    const userId = generateUniqueId();
+  
+    // Prepare the data to send to the backend
+    const userData = {
+      userId: userId,
+      email: email,
+      latitude: location.latitude,
+      longitude: location.longitude,
+    };
+  
+    // Send the data to the backend
+    try {
+      const response = await fetch(`http://${IP_ADDRESS}:3000/storeUserData`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+      });
+
+      
+  
+      const data = await response.json();
+      if (data.success) {
+        Alert.alert('Success', 'Your information has been submitted successfully.');
+        setIsFormVisible(false); // Close the form after submission
+      } else {
+        Alert.alert('Error', data.message || 'Could not save data to the database.');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'An error occurred while saving data.');
+      console.error(error);
+    }
   };
+  
+  // Function to generate a unique ID (simple example)
+  const generateUniqueId = () => {
+    return new Date().getTime().toString();  // Generate unique ID based on timestamp
+  };
+  
 
   const handleCancelForm = () => {
     setIsFormVisible(false); // Close the form
