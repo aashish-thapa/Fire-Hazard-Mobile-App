@@ -20,6 +20,7 @@ export default function Layout() {
           tabBarIcon: () => <MaterialIcons name="local-fire-department" size={24} color="black" />,
         }} 
       />
+      
       <Tabs.Screen
         name="news"
         options={{
