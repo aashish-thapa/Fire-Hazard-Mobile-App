@@ -1,24 +1,37 @@
 const express = require('express');
 const db = require('./db');
 const app = express();
-
+const cors = require('cors');
+app.use(cors());
 app.use(express.json());
 
-// Endpoint to add a new user
-app.post('/addUser', (req, res) => {
-  const { user_name, user_email, geolocation } = req.body;
-  const sql = `INSERT INTO users (user_name, user_email, geolocation) VALUES (?, ?, ?)`;
+app.post('/storeUserData', (req, res) => {
+  const { userId, email, latitude, longitude } = req.body;
 
-  db.query(sql, [user_name, user_email, geolocation], (err, result) => {
+  // Check if user already exists
+  const checkQuery = 'SELECT * FROM users WHERE email = ?';
+  db.query(checkQuery, [email], (err, result) => {
     if (err) {
-      return res.status(500).send({ error: err.message });
+      res.status(500).json({ success: false, message: 'Database query error' });
+      return;
     }
-    res.status(200).send({ message: 'User added successfully', id: result.insertId });
+    if (result.length > 0) {
+      res.status(400).json({ success: false, message: 'User already exists' });
+      return;
+    }
+
+    // Insert new user data
+    const query = 'INSERT INTO users (userId, email, latitude, longitude) VALUES (?, ?, ?, ?)';
+    db.query(query, [userId, email, latitude, longitude], (err, result) => {
+      if (err) {
+        res.status(500).json({ success: false, message: 'Database insertion error' });
+        return;
+      }
+      res.status(200).json({ success: true, message: 'User data stored successfully' });
+    });
   });
 });
 
-// Start server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+app.listen(3000, () => {
+  console.log('Server is running on port 3000');
 });
