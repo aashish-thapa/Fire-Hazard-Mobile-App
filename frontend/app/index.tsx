@@ -16,8 +16,8 @@ import MapView, { Marker } from 'react-native-maps';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter} from 'expo-router' ;// Import navigation
 
-const WEATHER_API_KEY = '7fd3dd027fcc5a94515388ee3c06b338';
-const IP_ADDRESS = '10.21.211.143';
+const WEATHER_API_KEY = '';
+const IP_ADDRESS = '';
 
 export default function HomeScreen() {
   const [location, setLocation] = useState({ latitude: 0, longitude: 0 });

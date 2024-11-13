@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, ActivityIndicator, Alert, Image } from 'react-native';
+import { StyleSheet, View, ActivityIndicator, Alert, Image, Button } from 'react-native';
 import * as Location from 'expo-location';
 import MapView, { Marker, Polygon } from 'react-native-maps';
 
@@ -15,16 +15,13 @@ export default function PredictionScreen() {
   const [loading, setLoading] = useState(true);
 
   const fetchFireData = async () => {
-    const client_id = 'gzSR9NjGiYdzGzItC4BpE';
-    const client_secret = 'UdZ2WV8o7vb55UG4Jd4CIExUHfXm8CyMFaWu454F';
+    const client_id = '';
+    const client_secret = '';
     const p = '39406';
     const url = `https://data.api.xweather.com/fires/closest?p=${p}&client_id=${client_id}&client_secret=${client_secret}`;
 
     try {
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-      });
+      const response = await fetch(url, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
       if (response.ok) {
         const data = await response.json();
         const fires = data.response.map((fire: any) => ({
@@ -40,48 +37,36 @@ export default function PredictionScreen() {
       console.error('Error fetching fire data:', error);
     }
   };
-  // Prediction function that fetches data from the prediction URL but does not automatically call it
-const fetchPredictionData = async () => {
-  const inputData = {
-    data: [
-      [
-        [
-          [0.0, 180.0, 5.0, 275.0, 290.0, 0.01, 1.5, 0.0, 0.6, 2.0, 40.0, -0.1],
-          // Repeat similar values for the required dimensions (32x32)
-        ]
-      ]
-    ]
-  };
 
-  const url = 'http://34.228.190.91:8000/predict/';
+  const fetchData = () => {
+    const inputData = {
+      data: Array(32).fill(
+        Array(32).fill([
+          0.0, 180.0, 5.0, 275.0, 290.0, 0.01, 1.5, 0.0, 0.6, 2.0, 40.0, -0.1
+        ])
+      )
+    };
 
-  try {
-    const response = await fetch(url, {
+    fetch('http://{ip_adress}:8000/predict/', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       },
-      body: JSON.stringify(inputData),
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      console.log('Prediction data:', data);
-      
-    } else {
-      console.error(`Error: ${response.status} - ${response.statusText}`);
-    }
-  } catch (error) {
-    console.error('Error fetching prediction data:', error);
-  }
-};
-
-// To use fetchPredictionData, call it manually where needed, but it won’t run automatically on import or component load.
-
+      body: JSON.stringify(inputData)
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => console.log('Response:', data))
+    .catch(error => console.error('Error:', error));
+  };
+  // this is the random function that is predicting the fire prone area but use fetchdata function if u want to work on it
   const predict = (center: { latitude: number; longitude: number }, radius: number) => {
-    
     const points = [];
-    const sides = 40; 
+    const sides = 40;
     for (let i = 0; i < sides; i++) {
       const angle = (i / sides) * 2 * Math.PI;
       const randomOffset = (Math.random() * 0.0008 + 0.0002) * (Math.random() < 0.5 ? 1 : -1);
@@ -139,24 +124,23 @@ const fetchPredictionData = async () => {
               <Image source={require('../assets/images/fire.png')} style={styles.fireIcon} />
             </Marker>
 
-            {/* Small Dark Red Gradient */}
             <Polygon
-              coordinates={predict(fire, 0.0032)}  // Smaller radius
-              fillColor="rgba(139, 0, 0, 0.6)" // Dark red, more opaque
-              strokeColor="rgba(139, 0, 0, 0.8)" // Dark red outline
+              coordinates={predict(fire, 0.0032)}
+              fillColor="rgba(139, 0, 0, 0.6)"
+              strokeColor="rgba(139, 0, 0, 0.8)"
               strokeWidth={2}
             />
 
-            {/* Larger Light Red Gradient */}
             <Polygon
-              coordinates={predict(fire, 0.01)}  // Larger radius
-              fillColor="rgba(255, 69, 0, 0.3)" // Lighter red, semi-transparent
-              strokeColor="rgba(255, 69, 0, 0.7)" // Darker red outline
+              coordinates={predict(fire, 0.01)}
+              fillColor="rgba(255, 69, 0, 0.3)"
+              strokeColor="rgba(255, 69, 0, 0.7)"
               strokeWidth={2}
             />
           </React.Fragment>
         ))}
       </MapView>
+      <Button title="Fetch Prediction Data" onPress={fetchData} />
     </View>
   );
 }
