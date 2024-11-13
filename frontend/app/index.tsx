@@ -1,31 +1,40 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Alert, StyleSheet, ActivityIndicator, TextInput, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  Alert,
+  StyleSheet,
+  ActivityIndicator,
+  TextInput,
+  TouchableOpacity,
+} from 'react-native';
 import * as Location from 'expo-location';
 import * as Notifications from 'expo-notifications';
 import { useFonts, Poppins_400Regular, Poppins_700Bold } from '@expo-google-fonts/poppins';
 import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import MapView, { Marker } from 'react-native-maps';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter} from 'expo-router' ;// Import navigation
 
 const WEATHER_API_KEY = '7fd3dd027fcc5a94515388ee3c06b338';
-const IP_ADDRESS = "10.0.0.183";
+const IP_ADDRESS = '10.21.211.143';
+
 export default function HomeScreen() {
-  const [location, setLocation] = useState({
-    latitude:0,
-    longitude:0
-  });
+  const [location, setLocation] = useState({ latitude: 0, longitude: 0 });
   const [weather, setWeather] = useState(null);
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState('');
-  const [isFormVisible, setIsFormVisible] = useState(false); // Track form visibility
+  const [isFormVisible, setIsFormVisible] = useState(false);
 
   let [fontsLoaded] = useFonts({
     Poppins_400Regular,
     Poppins_700Bold,
   });
 
+  const router = useRouter();
+
   useEffect(() => {
-    // Request location permission
+    // Request location permission and get weather data
     (async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
@@ -34,16 +43,8 @@ export default function HomeScreen() {
         return;
       }
 
-      // Get location
       let loc = await Location.getCurrentPositionAsync({});
-
-      
-
-      setLocation({
-        latitude: loc.coords.latitude,
-        longitude: loc.coords.longitude
-      });
-
+      setLocation({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
       fetchWeatherData(loc.coords.latitude, loc.coords.longitude);
     })();
   }, []);
@@ -56,7 +57,7 @@ export default function HomeScreen() {
       const data = await response.json();
       setWeather(data);
     } catch (error) {
-      Alert.alert("Error", "Could not retrieve weather data.");
+      Alert.alert('Error', 'Could not retrieve weather data.');
     } finally {
       setLoading(false);
     }
@@ -67,19 +68,15 @@ export default function HomeScreen() {
       Alert.alert('Error', 'Please enter a valid email address and make sure location is available.');
       return;
     }
-  
-    // Generate a unique user ID
+
     const userId = generateUniqueId();
-  
-    // Prepare the data to send to the backend
     const userData = {
       userId: userId,
       email: email,
       latitude: location.latitude,
       longitude: location.longitude,
     };
-  
-    // Send the data to the backend
+
     try {
       const response = await fetch(`http://${IP_ADDRESS}:3000/storeUserData`, {
         method: 'POST',
@@ -89,12 +86,10 @@ export default function HomeScreen() {
         body: JSON.stringify(userData),
       });
 
-      
-  
       const data = await response.json();
       if (data.success) {
         Alert.alert('Success', 'Your information has been submitted successfully.');
-        setIsFormVisible(false); // Close the form after submission
+        setIsFormVisible(false);
       } else {
         Alert.alert('Error', data.message || 'Could not save data to the database.');
       }
@@ -103,15 +98,14 @@ export default function HomeScreen() {
       console.error(error);
     }
   };
-  
-  // Function to generate a unique ID (simple example)
-  const generateUniqueId = () => {
-    return new Date().getTime().toString();  // Generate unique ID based on timestamp
-  };
-  
 
-  const handleCancelForm = () => {
-    setIsFormVisible(false); // Close the form
+  const generateUniqueId = () => new Date().getTime().toString();
+
+  const handleCancelForm = () => setIsFormVisible(false);
+
+  // Function to navigate to the Prediction tab when map is clicked
+  const handleMapPress = () => {
+    router.push('/prediction');
   };
 
   if (!fontsLoaded || loading) {
@@ -122,7 +116,7 @@ export default function HomeScreen() {
     <LinearGradient colors={['#0F2027', '#203A43', '#2C5364']} style={styles.background}>
       <View style={styles.overlay}>
         <Text style={styles.appName}>Fire Hazard Prediction</Text>
-        
+
         {/* Email Form Popup */}
         {isFormVisible && (
           <View style={styles.formContainer}>
@@ -145,7 +139,6 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* Button to show email form */}
         {!isFormVisible && (
           <TouchableOpacity
             style={styles.showFormButton}
@@ -158,26 +151,22 @@ export default function HomeScreen() {
         {location && weather ? (
           <View style={styles.card}>
             <Text style={styles.weatherTitle}>Current Weather</Text>
-            
             <View style={styles.weatherInfo}>
               <MaterialIcons name="location-on" size={24} color="white" />
               <Text style={styles.weatherText}>{weather?.name || 'Location Unavailable'}</Text>
             </View>
-
             <View style={styles.weatherInfo}>
               <FontAwesome5 name="temperature-low" size={24} color="white" />
               <Text style={styles.weatherText}>
                 Temperature: {weather?.main?.temp ?? '--'}°C
               </Text>
             </View>
-
             <View style={styles.weatherInfo}>
               <MaterialIcons name="water-drop" size={24} color="white" />
               <Text style={styles.weatherText}>
                 Humidity: {weather?.main?.humidity ?? '--'}%
               </Text>
             </View>
-
             <View style={styles.weatherInfo}>
               <MaterialIcons name="air" size={24} color="white" />
               <Text style={styles.weatherText}>
@@ -189,35 +178,31 @@ export default function HomeScreen() {
           <Text style={styles.loadingText}>Fetching location and weather data...</Text>
         )}
 
-        <View style={styles.mapContainer}>
+        {/* Map Container with onPress to navigate to Prediction tab */}
+        <TouchableOpacity style={styles.mapContainer} onPress={handleMapPress}>
           <MapView
             style={styles.map}
             region={{
-              latitude: location?.latitude || 37.78825,
-              longitude: location?.longitude || -122.4324,
+              latitude: location.latitude || 37.78825,
+              longitude: location.longitude || -122.4324,
               latitudeDelta: 0.0922,
               longitudeDelta: 0.0421,
             }}
           >
             {location && (
               <Marker
-                coordinate={{
-                  latitude: location.latitude,
-                  longitude: location.longitude,
-                }}
+                coordinate={{ latitude: location.latitude, longitude: location.longitude }}
                 title="You are here"
                 description="Your current location"
               />
             )}
           </MapView>
-        </View>
-
+        </TouchableOpacity>
       </View>
     </LinearGradient>
   );
 }
 
-// Rest of your styles...
 
 const styles = StyleSheet.create({
   background: {

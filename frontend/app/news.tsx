@@ -12,7 +12,7 @@ export default function NewsSafetyScreen() {
   const fetchWeatherNews = async () => {
     try {
       const response = await fetch(
-        `https://newsapi.org/v2/everything?q=fire&from=2024-10-10&sortBy=publishedAt&apiKey=3a850df0cd0b4d48bbc19ac37b593704`
+        "https://newsapi.org/v2/everything?q=weather&from=2024-10-12&sortBy=publishedAt&apiKey=3a850df0cd0b4d48bbc19ac37b593704"
       );
       
       if (response.ok) {
