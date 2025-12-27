@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Fire Hazard Mobile App",
-    "slug": "Fire Hazard Mobile App",
+    "slug": "fire-hazard-mobile-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
