@@ -1,0 +1,10 @@
+# Expo
+.expo/
+frontend/.expo/
+
+# Dependencies
+node_modules/
+
+# Environment files
+.env
+.env.local
